@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fraction Conversion Challenge Area</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --success: #16a34a;
+    --danger: #dc2626;
+    --warning: #d97706;
+    --background: #f8fafc;
+    --surface: #ffffff;
+    --text: #1e293b;
+    --border: #cbd5e1;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    padding: 20px;
+    margin: 0;
+  }
+
+  h1 { margin-top: 0; font-size: 28px; font-weight: 700; color: #0f172a; text-align: center; }
+  p.subtitle { color: #64748b; margin-top: -10px; margin-bottom: 20px; text-align: center; }
+
+  .card {
+    background: var(--surface);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+    max-width: 1340px; 
+    margin: 0 auto 20px auto;
+    border: 1px solid var(--border);
+  }
+
+  .setup-grid {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .workspace-split {
+    display: flex;
+    gap: 24px;
+    align-items: stretch;
+    justify-content: center;
+    margin-top: 15px;
+  }
+
+  .left-control-panel {
+    flex: 1;
+    min-width: 360px;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .right-visual-panel {
+    flex: 1.7; 
+    min-width: 500px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .stats-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  .level-badge { padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 700; }
+
+  input, select, button {
+    font-size: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  button { cursor: pointer; font-weight: 600; background: var(--primary); color: white; border: none; transition: all 0.2s; }
+  button:hover { opacity: 0.9; transform: translateY(-1px); }
+  button.help-btn { background: var(--warning); color: white; }
+  button.next-btn { background: #0f172a; color: white; width: 100%; margin-top: 10px; font-size: 18px; padding: 14px; }
+  button.finish-early-btn { background: #ef4444; color: white; }
+  
+  .submit-large-btn {
+    background: #16a34a;
+    color: white;
+    font-size: 22px;
+    padding: 20px 40px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.3);
+  }
+  .submit-large-btn:hover { background: #15803d; }
+
+  .challenge-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    font-weight: 700;
+    margin: 10px 0;
+    padding: 20px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    color: #0f172a;
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #e2e8f0;
+  }
+
+  .whole-number-display { font-size: 58px; line-height: 1; padding-right: 6px; }
+  .fraction-stack { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; }
+  .fraction-top { border-bottom: 4px solid #0f172a; padding: 0 8px 4px 8px; line-height: 1; }
+  .fraction-bottom { padding: 4px 8px 0 8px; line-height: 1; }
+
+  .clue-box { padding: 16px; border-radius: 8px; margin-top: 12px; font-size: 16px; font-weight: 600; text-align: left; display: none; line-height: 1.5; }
+  .clue-box.error { background: #fef2f2; color: var(--danger); border: 1px solid #fee2e2; }
+  .clue-box.success { background: #f0fdf4; color: var(--success); border: 1px solid #dcfce7; }
+  .clue-box.help { background: #fffbeb; color: #b45309; border: 1px solid #fef3c7; }
+  .clue-box.simplify { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+
+  canvas { display: block; background: transparent; max-width: 100%; height: auto; }
+  .placeholder-visual-text { color: #94a3b8; font-weight: 600; font-size: 18px; text-align: center; padding: 40px; }
+</style>
+</head>
+<body>
+
+<h1>Fraction Conversion Hub</h1>
+<p class="subtitle">Complete the 10-problem session to cleanly update your spreadsheet row.</p>
+
+<div class="card">
+  <div class="setup-grid">
+    <input type="text" id="studentName" placeholder="Enter Student Name" style="width: 180px;">
+    
+    <select id="challengeMode">
+      <option value="impToMix">Improper to Mixed Number</option>
+      <option value="mixToImp">Mixed Number to Improper</option>
+    </select>
+
+    <select id="studentLevelSelect">
+      <option value="level1">Level 1: Foundation (Easier)</option>
+      <option value="level2">Level 2: Foundation (Harder)</option>
+    </select>
+
+    <button onclick="startSession()">Start Challenges</button>
+  </div>
+</div>
+
+<div id="interactiveArea" class="card" style="display: none; padding: 24px;">
+  
+  <div class="stats-bar">
+    <div>Problem <span id="problemNumberDisplay">1</span> / 10</div>
+    <div id="levelDisplay" class="level-badge"></div>
+  </div>
+
+  <div class="workspace-split">
+    <div class="left-control-panel">
+      <p id="instructionText" style="font-weight: 600; color: #475569; margin: 0 0 8px 0; font-size: 16px;"></p>
+      <div id="questionDisplay" class="challenge-container"></div>
+      
+      <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+        <input type="text" id="studentAnswer" placeholder="e.g., 2 3/4 or 11/4" style="font-size: 20px; text-align: center; padding: 14px; width: 100%; box-sizing: border-box; font-weight: bold;">
+        
+        <div style="display: flex; gap: 10px; width: 100%;">
+          <button id="submitBtn" onclick="submitStudentAnswer()" style="font-size: 18px; padding: 14px; flex: 2;">Submit Answer</button>
+          <button id="helpBtn" onclick="flagNeedHelp()" class="help-btn" style="font-size: 18px; padding: 14px; flex: 1;">Help</button>
+        </div>
+        
+        <button id="nextBtn" onclick="generateNextQuestion()" class="next-btn" style="display: none;">Next Problem →</button>
+        <button id="finishEarlyBtn" onclick="finishSessionEarly()" class="finish-early-btn" style="font-size: 14px; padding: 8px; margin-top: 10px;">Finish & Turn In Early</button>
+      </div>
+
+      <div id="feedbackBox" class="clue-box"></div>
+    </div>
+
+    <div class="right-visual-panel" id="visualCard">
+      <div id="canvasPlaceholderText" class="placeholder-visual-text">Visual diagrams will render here.</div>
+      <canvas id="challengeCanvas" width="720" height="480" style="display: none;"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+const GOOGLE_FORM_VIEW_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeYFPCofDt-xDxFEWiCKBZAUwhTPhvhsCfUIo-kiiZAhH86ng/viewform";
+
+const FORM_ENTRIES = {
+  name: "entry.1467477227",      
+  mode: "entry.335365248",
+  score: "entry.1860040764", 
+  p1: "entry.752801741",
+  p2: "entry.394916819",
+  p3: "entry.1992595547",
+  p4: "entry.475114821", 
+  p5: "entry.194745101",
+  p6: "entry.400232576",
+  p7: "entry.520678462",
+  p8: "entry.1683963560",
+  p9: "entry.412657204",
+  p10: "entry.1010929619"
+};
+
+let currentQuestion = { whole: 0, num: 0, den: 2, improp: 0, textString: "", correctString: "", simplifiedString: "" };
+let totalProblemsAttempted = 0;
+let isSessionActive = false;
+let selectedDifficulty = "level1";
+let recentQuestionsHistory = [];
+
+let problemResults = Array(10).fill("No Entry"); 
+let scoreCounter = 0;
+let unsimplifiedStrikeLogged = false;
+let helpFlaggedForCurrentProblem = false; // Tracks if they hit the help lifeline
+
+function getGCD(a, b) { return b ? getGCD(b, a % b) : a; }
+
+function startSession() {
+  const name = document.getElementById('studentName').value.trim();
+  if (!name) { alert("Please enter a student name to track tasks."); return; }
+  totalProblemsAttempted = 0;
+  scoreCounter = 0;
+  isSessionActive = true;
+  selectedDifficulty = document.getElementById('studentLevelSelect').value;
+  recentQuestionsHistory = [];
+  problemResults = Array(10).fill("❌ Missed");
+
+  document.getElementById('challengeMode').disabled = true;
+  document.getElementById('studentName').disabled = true;
+  document.getElementById('studentLevelSelect').disabled = true;
+  
+  generateNextQuestion();
+}
+
+function generateNextQuestion() {
+  totalProblemsAttempted++;
+  unsimplifiedStrikeLogged = false;
+  helpFlaggedForCurrentProblem = false; // Reset for new question
+  
+  if (totalProblemsAttempted > 10) {
+    isSessionActive = false;
+    showManualTurnInScreen();
+    return;
+  }
+
+  document.getElementById('studentAnswer').value = "";
+  document.getElementById('studentAnswer').disabled = false;
+  document.getElementById('submitBtn').style.display = "inline-block";
+  document.getElementById('helpBtn').style.display = "inline-block";
+  document.getElementById('finishEarlyBtn').style.display = "inline-block";
+  document.getElementById('feedbackBox').style.display = "none";
+  document.getElementById('canvasPlaceholderText').style.display = "block";
+  document.getElementById('challengeCanvas').style.display = "none";
+  document.getElementById('nextBtn').style.display = "none";
+  document.getElementById('problemNumberDisplay').textContent = totalProblemsAttempted;
+  
+  const mode = document.getElementById('challengeMode').value;
+  let whole, den, num, improp, questionKey;
+  let attempts = 0;
+
+  while (attempts < 100) {
+    if (selectedDifficulty === "level1") {
+      const simpleDens = [2, 3, 4];
+      den = simpleDens[Math.floor(Math.random() * simpleDens.length)];
+      whole = Math.floor(Math.random() * 2) + 1; 
+      num = Math.floor(Math.random() * (den - 1)) + 1; 
+    } else {
+      const advancedDens = [4, 6, 8, 10, 12];
+      den = advancedDens[Math.floor(Math.random() * advancedDens.length)];
+      whole = Math.floor(Math.random() * 4) + 4; 
+      num = Math.floor(Math.random() * (den - 1)) + 1; 
+    }
+    questionKey = `${whole}-${num}-${den}`;
+    if (!recentQuestionsHistory.includes(questionKey)) break;
+    attempts++;
+  }
+
+  recentQuestionsHistory.push(questionKey);
+  if (recentQuestionsHistory.length > 4) recentQuestionsHistory.shift();
+
+  improp = (whole * den) + num;
+  currentQuestion.whole = whole; currentQuestion.num = num; currentQuestion.den = den; currentQuestion.improp = improp;
+
+  const gcd = getGCD(num, den);
+  if (mode === "impToMix") {
+    currentQuestion.textString = `${improp}/${den}`;
+    currentQuestion.correctString = `${whole} ${num}/${den}`;
+    currentQuestion.simplifiedString = gcd > 1 ? `${whole} ${(num/gcd)}/${(den/gcd)}` : `${whole} ${num}/${den}`;
+  } else {
+    currentQuestion.textString = `${whole} ${num}/${den}`;
+    currentQuestion.correctString = `${improp}/${den}`;
+    currentQuestion.simplifiedString = getGCD(improp, den) > 1 ? `${(improp/getGCD(improp,den))}/${(den/getGCD(improp,den))}` : `${improp}/${den}`;
+  }
+
+  const displayBox = document.getElementById('questionDisplay');
+  if (mode === "impToMix") {
+    document.getElementById('instructionText').textContent = "Convert to a Mixed Number:";
+    displayBox.innerHTML = `<div class="fraction-stack"><div class="fraction-top">${improp}</div><div class="fraction-bottom">${den}</div></div>`;
+  } else {
+    document.getElementById('instructionText').textContent = "Convert to an Improper Fraction:";
+    displayBox.innerHTML = `<div class="whole-number-display">${whole}</div><div class="fraction-stack"><div class="fraction-top">${num}</div><div class="fraction-bottom">${den}</div></div>`;
+  }
+  document.getElementById('interactiveArea').style.display = "block";
+}
+
+function submitStudentAnswer() {
+  const studentAns = document.getElementById('studentAnswer').value.trim().replace(/\s+/g, ' ');
+  if (!studentAns) { alert("Please type an answer before clicking Submit."); return; }
+  
+  const matchesBaseCorrect = (studentAns === currentQuestion.correctString);
+  const matchesSimplified = (studentAns === currentQuestion.simplifiedString);
+  const canBeSimplified = (currentQuestion.correctString !== currentQuestion.simplifiedString);
+  const idx = totalProblemsAttempted - 1;
+
+  document.getElementById('canvasPlaceholderText').style.display = "none";
+  document.getElementById('challengeCanvas').style.display = "block";
+  const box = document.getElementById('feedbackBox');
+  box.style.display = "block";
+
+  if (matchesSimplified) {
+    box.className = "clue-box success";
+    box.innerHTML = `🎉 Correct! <strong>${currentQuestion.textString}</strong> = <strong>${currentQuestion.simplifiedString}</strong>.`;
+    drawVisuals(false, true); 
+    
+    if (!unsimplifiedStrikeLogged) scoreCounter++; 
+    problemResults[idx] = helpFlaggedForCurrentProblem ? "ℹ️ Requested Help (Then Correct)" : "✅ Correct";
+    advanceWorkareaInterface();
+
+  } else if (matchesBaseCorrect && canBeSimplified) {
+    if (!unsimplifiedStrikeLogged) {
+      scoreCounter += 0.5; 
+      unsimplifiedStrikeLogged = true;
+    }
+    problemResults[idx] = helpFlaggedForCurrentProblem ? "ℹ️ Requested Help (Then Unsimplified)" : "⚠️ Correct (Unsimplified)";
+    
+    box.className = "clue-box simplify";
+    box.innerHTML = `🌟 <strong>Numerically correct step!</strong> Can you simplify it further?`;
+    drawVisuals(false, false, true); 
+    document.getElementById('studentAnswer').value = ""; document.getElementById('studentAnswer').focus();
+
+  } else if (matchesBaseCorrect) {
+    box.className = "clue-box success";
+    box.innerHTML = `🎉 Correct!`;
+    drawVisuals(false, false);
+    scoreCounter++;
+    problemResults[idx] = helpFlaggedForCurrentProblem ? "ℹ️ Requested Help (Then Correct)" : "✅ Correct";
+    advanceWorkareaInterface();
+
+  } else {
+    box.className = "clue-box error";
+    box.innerHTML = `❌ Incorrect. Correct answer: <strong>${currentQuestion.correctString}</strong>`;
+    drawVisuals(false, false);
+    problemResults[idx] = helpFlaggedForCurrentProblem ? "ℹ️ Requested Help (Then Missed)" : "❌ Missed (" + (studentAns || "Blank") + ")";
+    advanceWorkareaInterface();
+  }
+}
+
+function advanceWorkareaInterface() {
+  document.getElementById('studentAnswer').disabled = true;
+  document.getElementById('submitBtn').style.display = "none";
+  document.getElementById('helpBtn').style.display = "none";
+  document.getElementById('finishEarlyBtn').style.display = "none";
+  document.getElementById('nextBtn').style.display = "inline-block";
+}
+
+// FIXED: Displays the help diagram but keeps the submission options active so they can finish the problem!
+function flagNeedHelp() {
+  helpFlaggedForCurrentProblem = true;
+  document.getElementById('canvasPlaceholderText').style.display = "none";
+  document.getElementById('challengeCanvas').style.display = "block";
+  drawVisuals(true, false);
+  
+  const box = document.getElementById('feedbackBox');
+  box.style.display = "block";
+  box.className = "clue-box help";
+  box.innerHTML = `💡 Help diagram shown! Study the colored sections above to write your response, then click Submit Answer.`;
+  
+  // Hide help button so they don't click it repeatedly on the same problem
+  document.getElementById('helpBtn').style.display = "none";
+}
+
+function finishSessionEarly() {
+  if (!isSessionActive) return;
+  isSessionActive = false;
+  showManualTurnInScreen();
+}
+
+function showManualTurnInScreen() {
+  const mainWorkspace = document.getElementById('interactiveArea');
+  const studentName = document.getElementById('studentName').value.trim();
+  const modeText = document.getElementById('challengeMode').value === "impToMix" ? "Improper to Mixed" : "Mixed to Improper";
+  const scoreSummary = `${scoreCounter} / 10`;
+
+  const urlParams = new URLSearchParams();
+  urlParams.append(FORM_ENTRIES.name, studentName);
+  urlParams.append(FORM_ENTRIES.mode, modeText);
+  urlParams.append(FORM_ENTRIES.score, scoreSummary);
+  urlParams.append(FORM_ENTRIES.p1, problemResults[0]);
+  urlParams.append(FORM_ENTRIES.p2, problemResults[1]);
+  urlParams.append(FORM_ENTRIES.p3, problemResults[2]);
+  urlParams.append(FORM_ENTRIES.p4, problemResults[3]);
+  urlParams.append(FORM_ENTRIES.p5, problemResults[4]);
+  urlParams.append(FORM_ENTRIES.p6, problemResults[5]);
+  urlParams.append(FORM_ENTRIES.p7, problemResults[6]);
+  urlParams.append(FORM_ENTRIES.p8, problemResults[7]);
+  urlParams.append(FORM_ENTRIES.p9, problemResults[8]);
+  urlParams.append(FORM_ENTRIES.p10, problemResults[9]);
+
+  const completePreFilledUrl = `${GOOGLE_FORM_VIEW_URL}?${urlParams.toString()}`;
+
+  mainWorkspace.innerHTML = `
+    <div style="padding: 40px; text-align: center; width: 100%;">
+      <h2 style="color: #1e293b; font-size: 26px; margin-bottom: 5px;">Session Complete!</h2>
+      <p style="color: #475569; font-size: 18px; margin-top: 0;">
+        <strong>${studentName}</strong>, your final calculated score is <strong>${scoreSummary}</strong>.
+      </p>
+      
+      <div style="margin: 30px auto; padding: 20px; max-width: 550px; background: #f0fdf4; border: 2px dashed #16a34a; border-radius: 12px;">
+        <p style="color: #166534; font-size: 16px; margin-top: 0; font-weight: 600;">
+          👇 Final Step: Click the button below to turn in your score row to Google Sheets.
+        </p>
+        <button onclick="window.open('${completePreFilledUrl}', '_blank')" class="submit-large-btn">
+          Click Here to Turn In Your Score 🚀
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function drawVisuals(enhancedHelpMode, forceSimplifiedView, showComparisonDualRow) {
+  const canvas = document.getElementById('challengeCanvas'); const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const totalCircles = Math.ceil(currentQuestion.improp / currentQuestion.den) || 1; const r = showComparisonDualRow ? 52 : 72; const spacing = r * 2.45;
+  ctx.strokeStyle = '#020617'; ctx.lineWidth = 2.8;
+
+  if (showComparisonDualRow) {
+    const gcd = getGCD(currentQuestion.num, currentQuestion.den); const simplifiedDen = currentQuestion.den / gcd; const simplifiedNum = currentQuestion.num / gcd;
+    let startXA = canvas.width / 2 - (((totalCircles - 1) * spacing) / 2); let yA = 110; let partsDrawnA = 0;
+    for (let c = 0; c < totalCircles; c++) {
+      const step = (2 * Math.PI) / currentQuestion.den;
+      for (let i = 0; i < currentQuestion.den; i++) {
+        ctx.beginPath(); ctx.moveTo(startXA, yA); ctx.arc(startXA, yA, r, (i * step) - Math.PI / 2, ((i + 1) * step) - Math.PI / 2); ctx.closePath();
+        ctx.fillStyle = (partsDrawnA < currentQuestion.improp) ? '#2563eb' : '#f8fafc'; ctx.fill(); ctx.stroke(); partsDrawnA++;
+      }
+      startXA += spacing;
+    }
+    let startXB = canvas.width / 2 - (((totalCircles - 1) * spacing) / 2); let yB = 300; let partsDrawnB = 0; const totalSimpPartsNeeded = (currentQuestion.whole * simplifiedDen) + simplifiedNum;
+    for (let c = 0; c < totalCircles; c++) {
+      const step = (2 * Math.PI) / simplifiedDen;
+      for (let i = 0; i < simplifiedDen; i++) {
+        ctx.beginPath(); ctx.moveTo(startXB, yB); ctx.arc(startXB, yB, r, (i * step) - Math.PI / 2, ((i + 1) * step) - Math.PI / 2); ctx.closePath();
+        ctx.fillStyle = (partsDrawnB < totalSimpPartsNeeded) ? '#16a34a' : '#f8fafc'; ctx.fill(); ctx.stroke(); partsDrawnB++;
+      }
+      startXB += spacing;
+    }
+    return;
+  }
+  let activeDen = currentQuestion.den; let activeImprop = currentQuestion.improp;
+  if (forceSimplifiedView) { const gcd = getGCD(currentQuestion.num, currentQuestion.den); activeDen = currentQuestion.den / gcd; activeImprop = ((currentQuestion.whole * currentQuestion.den) + currentQuestion.num) / gcd; }
+  let startX = canvas.width / 2 - (((Math.min(totalCircles, 4) - 1) * spacing) / 2); let y = 200; let partsDrawn = 0;
+  for (let c = 0; c < totalCircles; c++) {
+    if (c > 0 && c % 4 === 0) { startX = canvas.width / 2 - (((Math.min(totalCircles - c, 4) - 1) * spacing) / 2); y += (r * 2.6); }
+    const step = (2 * Math.PI) / activeDen;
+    for (let i = 0; i < activeDen; i++) {
+      ctx.beginPath(); ctx.moveTo(startX, y); ctx.arc(startX, y, r, (i * step) - Math.PI / 2, ((i + 1) * step) - Math.PI / 2); ctx.closePath();
+      ctx.fillStyle = (partsDrawn < activeImprop) ? '#16a34a' : '#f8fafc'; ctx.fill(); ctx.stroke(); partsDrawn++;
+    }
+    startX += spacing;
+  }
+}
+</script>
+</body>
+</html>
